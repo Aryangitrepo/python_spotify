@@ -19,20 +19,28 @@ def get_tracks(token, playlist_id):
 
 def fun(token):
     res = get_playlists(token)
-    if res.status_code == 401:
-        print("\nCreating token...")
-        token = refresh_token.re_to()
-        res = get_playlists(token)
-        user = res.json()
-        playlist_id = user["items"][0]["id"]
-        tracks_res = get_tracks(token, playlist_id)
-        if tracks_res.status_code == 200:
-            tracks = tracks_res.json()
-            for i, result in enumerate(tracks["items"], 0):
-                print(i, result["track"]["name"], result["track"]["id"])
-        else:
-            print("Failed to get tracks:", tracks_res.status_code, tracks_res.text)
-    return token
+    try:
+        if res.status_code == 401:
+            print("\nCreating token...")
+            token = refresh_token.re_to()
+            res = get_playlists(token)
+            user = res.json()
+            print(user)
+            playlist_id = user["items"][0]["id"]
+            tracks_res = get_tracks(token, playlist_id)
+            if tracks_res.status_code == 200:
+                tracks = tracks_res.json()
+                mylist=[]
+                if tracks["items"]==mylist:
+                    print("no tracks available")
+                else:
+                    for i, result in enumerate(tracks["items"], 0):
+                        print(i, result["track"]["name"], result["track"]["id"])
+            else:
+                print("Failed to get tracks:", tracks_res.status_code, tracks_res.text)
+    except:
+        print("no play lists found")
+        return token
 
 token_ = fun(token_)
     
