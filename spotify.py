@@ -26,7 +26,7 @@ def fun(token):
             res = get_playlists(token)
             user = res.json()
             print(user)
-            playlist_id = user["items"][0]["id"]
+            playlist_id = user["items"][0]["id"] #add iteration for multiple playlists
             tracks_res = get_tracks(token, playlist_id)
             if tracks_res.status_code == 200:
                 tracks = tracks_res.json()
