@@ -22,7 +22,6 @@ The links are provided below containing the information on how to create your ow
 
 # Spotify to YouTube Audio Downloader
 
-This script fetches tracks from your Spotify playlists, searches for the corresponding YouTube videos, and downloads the audio from these videos. 
 To use the downloader, run the `spotify.py` file.
 
 ## About the Code
