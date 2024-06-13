@@ -17,6 +17,9 @@ You can install the required libraries using pip:
 ---bash
 ~# pip install requests pytube
 
+Try using your own API key and spotify IDs as it will lessen the load on our current API keys
+The links are provided below containing the information on how to create your own API keys and spotify `CLIENT-ID` and `CLIENT-SECRET`
+
 # Spotify to YouTube Audio Downloader
 
 This script fetches tracks from your Spotify playlists, searches for the corresponding YouTube videos, and downloads the audio from these videos.
@@ -36,4 +39,4 @@ This script fetches tracks from your Spotify playlists, searches for the corresp
 -[Pytube](https://pytube.io/en/latest/)
 
 
-Now you are good to go.........
+### Now you are good to go.........
