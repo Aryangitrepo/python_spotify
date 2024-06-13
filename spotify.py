@@ -1,71 +1,109 @@
 import requests
-import refresh_token
+import spotify_api.refresh_token as refresh_token
 from pytube import YouTube
 
-token_ = "abcd"
-api_key="AIzaSyD24-nGJlYZzy-hgG746XZcRVfprUdNXyk"
+# Edit the URLs if you run into version errors and add your own api keys.
+SPOTIFY_API_URL = "https://api.spotify.com/v1"
+YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
+YOUTUBE_API_KEYS = []
+
 
 def get_playlists(token):
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-    res = requests.get("https://api.spotify.com/v1/me/playlists", headers=headers)
+    headers = {"Authorization": f"Bearer {token}"}
+    res = requests.get(f"{SPOTIFY_API_URL}/me/playlists", headers=headers)
     return res
+
 
 def get_tracks(token, playlist_id):
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-    res = requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", headers=headers)
+    headers = {"Authorization": f"Bearer {token}"}
+    res = requests.get(f"{SPOTIFY_API_URL}/playlists/{playlist_id}/tracks", headers=headers)
     return res
-name=[]
-artists=[]
-def fun(token):
+
+
+# Main function to fetch playlist and track information. This was built to fix the random connectionbreak error.
+def fetch_playlist_info(token):
     res = get_playlists(token)
-    try:
-        if res.status_code == 401:
-            print("\nCreating token...")
-            token = refresh_token.re_to()
-            res = get_playlists(token)
-            user = res.json()
-            playlist_id = user["items"][0]["id"] #add iteration for multiple playlists
-            tracks_res = get_tracks(token, playlist_id)
-            if tracks_res.status_code == 200:
-                tracks = tracks_res.json()
-                mylist=[]
-                if tracks["items"]==mylist:
-                    print("no tracks available")
-                else:
-                    for i, result in enumerate(tracks["items"], 0):
-                        print(i, result["track"]["name"])
-                        name.append(result["track"]["name"])
-                        artists.append(result["track"]["artists"][0]["name"])
+    if res.status_code == 401:
+        print("\nCreating token...")
+        token = refresh_token.re_to()
+        res = get_playlists(token)
+
+    if res.status_code != 200:
+        print("Failed to get playlists:", res.status_code, res.text)
+        return token, "", []
+
+    user = res.json()
+    playlist_link = input("Enter the playlist link:")
+    id_pos = playlist_link.find("playlist") + 9
+    q_pos = playlist_link.find('?')
+    playlist_id = playlist_link[id_pos:q_pos if q_pos > 9 else len(playlist_link)]
+    print("Playlist ID:", playlist_id)
+
+    tracks_res = get_tracks(token, playlist_id)
+    if tracks_res.status_code != 200:
+        print("Failed to get tracks:", tracks_res.status_code, tracks_res.text)
+        return token, playlist_id, []
+
+    tracks = tracks_res.json()
+    track_names = [item["track"]["name"] for item in tracks["items"]]
+
+    if not track_names:
+        print("No tracks available")
+    else:
+        for i, name in enumerate(track_names):
+            print(i, name)
+
+    return token, playlist_id, track_names
+
+
+# Function to search YouTube and download videos. edit at your own risk.
+def search_and_download_videos(track_names, artists, playlist_id):
+    for i, track_name in enumerate(track_names):
+        for api_key in YOUTUBE_API_KEYS:
+            yt_res = requests.get(YOUTUBE_SEARCH_URL, params={
+                "key": api_key,
+                "q": f"{track_name} {artists[i]} song",
+                "type": "video"
+            })
+            if yt_res.status_code == 200:
+                yt_js = yt_res.json()
+                if yt_js["items"]:
+                    video_id = yt_js["items"][0]["id"]["videoId"]
+                    break
             else:
-                print("Failed to get tracks:", tracks_res.status_code, tracks_res.text)
-    except:
-        print("no play lists found")
-        return token
-
-token_ = fun(token_)
-
-#yt searching
-yt_url="https://www.googleapis.com/youtube/v3/search"
-for names,artist in zip(name,artists):
-    try:
-        yt_res = requests.get(yt_url, params={"key": api_key, "q": names+" "+artist, "type": "video"})
-        print(f"Status code for '{names}': {yt_res.status_code}")
-        yt_js = yt_res.json()
-        video_id = yt_js["items"][0]["id"]["videoId"]
-        print(f"Video ID for '{names}': {video_id}")
-        print("Download started.......")
-        yt = YouTube(f'https://www.youtube.com/watch?v={video_id}')
-        res = yt.streams.filter(only_audio=True, abr="128kbps")
-        if res:
-            stream = res.first()
-            stream.download(output_path="./downloads")
-            print(f"Download completed for '{names}' by {artist}")
+                print("YouTube API quota exceeded for key:", api_key)
+                continue
         else:
-            print(f"No suitable audio stream found for '{names}'")
-    except Exception as e:
-        print(f"An error occurred for '{names}': {e}")
-        continue
+            print("Failed to find a video for:", track_name)
+            continue
+
+        # Downloading part - may or maynot throw age restricted error. May come off as an issue in the future.
+        print("Download started for:", track_name)
+        yt = YouTube(f'https://www.youtube.com/watch?v={video_id}')
+        try:
+            res = yt.streams.filter(only_audio=True, abr="128kbps")
+            if res:
+                stream = res[0]
+                output_path = f"./downloads/{refresh_token.get_playlist_name(playlist_id)}"
+                stream.download(output_path=output_path)
+                print(f"Downloaded {track_name} to {output_path}")
+            else:
+                print(f"No suitable stream found for {track_name}")
+        except Exception as e:
+            print(f"Failed to download {track_name}: {e}")
+
+
+# Main execution
+def main():
+    token = "dummy_text"
+    token, playlist_id, track_names = fetch_playlist_info(token)
+
+    if not track_names:
+        print("Failed to get playlist or tracks.")
+        return
+
+    artists = refresh_token.get_artists_from_playlist(playlist_id)
+    search_and_download_videos(track_names, artists, playlist_id)
+
+if __name__ == "__main__":
+    main()
