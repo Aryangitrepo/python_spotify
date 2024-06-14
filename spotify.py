@@ -5,8 +5,9 @@ from pytube import YouTube
 # Edit the URLs if you run into version errors and add your own api keys.
 SPOTIFY_API_URL = "https://api.spotify.com/v1"
 YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
-YOUTUBE_API_KEYS = []
-
+YOUTUBE_API_KEYS = [
+    "add yt keys here"
+]
 
 def get_playlists(token):
     headers = {"Authorization": f"Bearer {token}"}
@@ -32,7 +33,6 @@ def fetch_playlist_info(token):
         print("Failed to get playlists:", res.status_code, res.text)
         return token, "", []
 
-    user = res.json()
     playlist_link = input("Enter the playlist link:")
     id_pos = playlist_link.find("playlist") + 9
     q_pos = playlist_link.find('?')
@@ -46,6 +46,7 @@ def fetch_playlist_info(token):
 
     tracks = tracks_res.json()
     track_names = [item["track"]["name"] for item in tracks["items"]]
+    artists= [item["track"]["artists"][0]["name"] for item in tracks["items"]]
 
     if not track_names:
         print("No tracks available")
@@ -53,11 +54,11 @@ def fetch_playlist_info(token):
         for i, name in enumerate(track_names):
             print(i, name)
 
-    return token, playlist_id, track_names
+    return token, playlist_id, track_names,artists
 
 
 # Function to search YouTube and download videos. edit at your own risk.
-def search_and_download_videos(track_names, artists, playlist_id):
+def search_and_download_videos(track_names, artists):
     for i, track_name in enumerate(track_names):
         for api_key in YOUTUBE_API_KEYS:
             yt_res = requests.get(YOUTUBE_SEARCH_URL, params={
@@ -78,15 +79,15 @@ def search_and_download_videos(track_names, artists, playlist_id):
             continue
 
         # Downloading part - may or maynot throw age restricted error. May come off as an issue in the future.
-        print("Download started for:", track_name)
+        print("Download started for:", track_name +f" by {artists[i]}")
         yt = YouTube(f'https://www.youtube.com/watch?v={video_id}')
         try:
             res = yt.streams.filter(only_audio=True, abr="128kbps")
             if res:
                 stream = res[0]
-                output_path = f"./downloads/{refresh_token.get_playlist_name(playlist_id)}"
-                stream.download(output_path=output_path)
-                print(f"Downloaded {track_name} to {output_path}")
+               # output_path = f"./downloads/{refresh_token.get_playlist_name(playlist_id)}" this aint working 
+                stream.download("./downloads")
+                print(f"Downloaded {track_name}  to downloads")
             else:
                 print(f"No suitable stream found for {track_name}")
         except Exception as e:
@@ -96,14 +97,13 @@ def search_and_download_videos(track_names, artists, playlist_id):
 # Main execution
 def main():
     token = "dummy_text"
-    token, playlist_id, track_names = fetch_playlist_info(token)
-
+    token, playlist_id, track_names,artists = fetch_playlist_info(token)
+    print(f"the playlist id : {playlist_id}")
     if not track_names:
         print("Failed to get playlist or tracks.")
         return
-
-    artists = refresh_token.get_artists_from_playlist(playlist_id)
-    search_and_download_videos(track_names, artists, playlist_id)
+    # what was here ??
+    search_and_download_videos(track_names,artists)
 
 if __name__ == "__main__":
     main()
