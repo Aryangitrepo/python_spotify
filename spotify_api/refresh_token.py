@@ -2,8 +2,8 @@ import requests
 
 # Constants
 TOKEN_URL = 'https://accounts.spotify.com/api/token'
-CLIENT_ID = '0fd112519e78427298e734ebc971c0cf'
-CLIENT_SECRET = 'bb3aaa058b074840bf971b4d7813d386'
+CLIENT_ID = 'spotify_client_id'
+CLIENT_SECRET = 'spotify_client_secret'
 REFRESH_TOKEN = 'AQBw55muI4lxIVrNU_DEVJhtZ_bh3MnGqbj9bNEIxQXE33EtT2aR4uq2VwSy_eS4uam_E8Q7pIto7kMKGNa4hMnn6ydYrgggQgygWvCVtLaq4tdmKL6XBF1OmYx-h1yX_Ac'
 
 # Data for token request

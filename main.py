@@ -11,11 +11,7 @@ from pytube import YouTube
 
 # Constants
 YOUTUBE_API_KEYS = [
-    "AIzaSyBTnea2CG-5BMShYTQldLlbhnEW6xfNJHs",
-    "AIzaSyDT0TBlMNtzv-NfkB20PfrAxQ9wz2MQmvY",
-    "AIzaSyD24-nGJlYZzy-hgG746XZcRVfprUdNXyk",
-    "AIzaSyAsnsXx4oeGrWQcVKusU9j8et0VKTzbpQk",
-    "AIzaSyCIWRWVdn6sl46jwGCoqaHxTWXs4GGtc7Q"
+    "enter yorur keys"
 ]
 YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
 
